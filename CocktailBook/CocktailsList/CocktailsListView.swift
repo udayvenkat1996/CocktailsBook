@@ -9,45 +9,60 @@ import SwiftUI
 
 struct CocktailsListView: View {
     
-    @State var filteredCocktails: [Cocktail] = []
+    @StateObject var viewModel = CocktailsListViewModel()
     
     var body: some View {
         NavigationView {
             VStack {
-                List(filteredCocktails) { cocktail in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(cocktail.name)
-                                .fontWeight(cocktail.isFavorite ? .bold : .regular)
-                                .foregroundColor(cocktail.isFavorite ? .red : .primary)
-                            Text(cocktail.shortDescription)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        Spacer()
-                        if cocktail.isFavorite {
-                            Image(systemName: "heart.fill")
-                                .foregroundColor(.red)
+                Picker("Filter", selection: $viewModel.filterState) {
+                    Text("All").tag(CocktailsListViewModel.FilterState.all)
+                    Text("Alcoholic").tag(CocktailsListViewModel.FilterState.alcoholic)
+                    Text("Non-Alcoholic").tag(CocktailsListViewModel.FilterState.nonAlcoholic)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding()
+                if viewModel.apiState == .loading {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                } else if viewModel.apiState == .success {
+                    List(viewModel.filteredCocktails) { cocktail in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(cocktail.name)
+                                    .fontWeight(cocktail.isFavorite ? .bold : .regular)
+                                    .foregroundColor(cocktail.isFavorite ? .red : .primary)
+                                Text(cocktail.shortDescription)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            if cocktail.isFavorite {
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(.red)
+                            }
                         }
                     }
+                } else {
+                    Spacer()
+                    Text("No Data Found")
+                    Spacer()
                 }
             }
-            .navigationBarTitle(Text("All Cocktails"))
-            .onAppear() {
-                guard let file = Bundle.main.url(forResource: "sample", withExtension: "json") else {
-                    fatalError("sample.json can not be found")
-                }
-                guard let data = try? Data(contentsOf: file) else {
-                    fatalError("can not load contents of sample.json")
-                }
-                do {
-                    self.filteredCocktails = try JSONDecoder().decode([Cocktail].self, from: data)
-                } catch {
-                    print("Could not convert the json to model")
-                }
-            }
+            .navigationBarTitle(Text(navigationTitle))
         }
     }
+    
+    private var navigationTitle: String {
+           switch viewModel.filterState {
+           case .all:
+               return "All Cocktails"
+           case .alcoholic:
+               return "Alcoholic Cocktails"
+           case .nonAlcoholic:
+               return "Non-Alcoholic Cocktails"
+           }
+       }
 }
 
 #Preview {
