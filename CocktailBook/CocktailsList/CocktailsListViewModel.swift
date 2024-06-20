@@ -17,7 +17,11 @@ enum ApiState {
 class CocktailsListViewModel: ObservableObject {
     
     @Published var cocktails: [Cocktail] = []
-    @Published var filteredCocktails: [Cocktail] = []
+    @Published var filteredCocktails: [Cocktail] = [] {
+        didSet {
+            saveFavorites()
+        }
+    }
     @Published var filterState: FilterState = .all {
         didSet {
             filterCocktails()
@@ -26,6 +30,7 @@ class CocktailsListViewModel: ObservableObject {
     @Published var apiState: ApiState = .loading
 
     private let cocktailsAPI: CocktailsAPI = FakeCocktailsAPI()
+    private let favoritesKey = "favorites"
     private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -41,6 +46,7 @@ class CocktailsListViewModel: ObservableObject {
             .sink { [weak self] cocktails in
                 self?.apiState = .success
                 self?.cocktails = cocktails
+                self?.loadFavorites()
                 self?.filterCocktails()
             }
             .store(in: &cancellables)
@@ -71,6 +77,21 @@ class CocktailsListViewModel: ObservableObject {
             filterCocktails()
         }
     }
+    
+    private func saveFavorites() {
+            let favoriteIds = cocktails.filter { $0.isFavorite }.map { $0.id }
+            UserDefaults.standard.set(favoriteIds, forKey: favoritesKey)
+        }
+        
+        private func loadFavorites() {
+            if let favoriteIds = UserDefaults.standard.array(forKey: favoritesKey) as? [String] {
+                for index in cocktails.indices {
+                    if favoriteIds.contains(cocktails[index].id) {
+                        cocktails[index].isFavorite = true
+                    }
+                }
+            }
+        }
     
     enum FilterState {
         case all
