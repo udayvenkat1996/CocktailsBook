@@ -68,6 +68,7 @@ class CocktailsListViewModel: ObservableObject {
     func toggleFavorite(cocktail: Cocktail) {
         if let index = cocktails.firstIndex(where: { $0.id == cocktail.id }) {
             cocktails[index].isFavorite.toggle()
+            filterCocktails()
         }
     }
     

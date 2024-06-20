@@ -27,19 +27,21 @@ struct CocktailsListView: View {
                     Spacer()
                 } else if viewModel.apiState == .success {
                     List(viewModel.filteredCocktails) { cocktail in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(cocktail.name)
-                                    .fontWeight(cocktail.isFavorite ? .bold : .regular)
-                                    .foregroundColor(cocktail.isFavorite ? .red : .primary)
-                                Text(cocktail.shortDescription)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            if cocktail.isFavorite {
-                                Image(systemName: "heart.fill")
-                                    .foregroundColor(.red)
+                        NavigationLink(destination: CocktailDetailsView(cocktail: cocktail, viewModel: viewModel)) {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(cocktail.name)
+                                        .fontWeight(cocktail.isFavorite ? .bold : .regular)
+                                        .foregroundColor(cocktail.isFavorite ? .red : .primary)
+                                    Text(cocktail.shortDescription)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                if cocktail.isFavorite {
+                                    Image(systemName: "heart.fill")
+                                        .foregroundColor(.red)
+                                }
                             }
                         }
                     }
